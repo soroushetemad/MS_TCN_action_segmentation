@@ -1,0 +1,62 @@
+# --- GLOBAL SETTINGS ---
+common:
+  device: "cuda" # or "cpu"
+  labels: 
+    - "reach"
+    - "grasp"
+    - "move"
+    - "align"
+    - "screw"
+    - "twist"
+    - "release"
+  # Make sure to add more colors if you add more labels
+  colors:
+    - [255, 100, 100]
+    - [100, 255, 100]
+    - [100, 100, 255]
+    - [0, 255, 255]
+    - [255, 0, 255]
+    - [255, 255, 0]
+    - [200, 200, 200]
+
+# --- DATA CONFIGURATION ---
+data:
+  # The mode controls inputs: "rgb", "tactile", or "all"
+  mode: "all" 
+  use_trajectory: true 
+  dataset_root: "./data" # Path to data folder
+  output_prefix: "training_data" 
+  
+  # File Names Config
+  files:
+    raw_video: "raw_video.mp4"
+    trajectory: "camera_trajectory.csv"
+    labels: "frame_labels.csv"
+    tactile_0: "tac_0.mp4"
+    tactile_1: "tac_1.mp4"
+    
+    # Output/Generated Files
+    pred_labels_prefix: "pred_labels" 
+    saliency_prefix: "saliency"
+    viz_prefix: "vis"
+    
+    # t-SNE & Cache
+    cache_features: "cache_features.npz"
+    cache_meta: "cache_meta.pkl"
+    tsne_plot: "tsne_terminal_states.png"
+    all_labels_plot: "all_demos_labels"
+
+# --- MODEL ARCHITECTURE ---
+model:
+  feature_dim: 512      # ResNet output size
+  kin_dim_raw: 6        # Raw kinematics (xyz + rpy)
+  kin_dim_embed: 8     # Encoded kinematics size
+  num_layers: 10
+  num_f_maps: 64
+  num_classes: 7
+
+# --- TRAINING HYPERPARAMETERS ---
+training:
+  epochs: 150
+  lr: 0.0005
+  save_name_prefix: "best_multimodal" # Script appends _mode.pth

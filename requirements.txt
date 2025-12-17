@@ -1,0 +1,13 @@
+torch
+torchvision
+opencv-python
+pandas
+numpy
+tqdm
+scipy
+pyyaml
+matplotlib
+scikit-learn
+plotly
+dash
+pillow

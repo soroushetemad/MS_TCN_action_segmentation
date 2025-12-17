@@ -1,6 +1,11 @@
 # Action Segmentation Pipeline
 
-This repository contains a complete pipeline for action segmentation using multi-modal data (RGB, Tactile, Trajectory). It includes tools for data labeling, feature extraction (preprocessing), model training (Single-Stage TCN), inference, and visualization (saliency maps & t-SNE).
+This repository implements a robust, end-to-end pipeline for **Action Segmentation** using multi-modal data (RGB, Tactile, and Robot Kinematics). It utilizes a **Multi-Stage Temporal Convolutional Network (MS-TCN)** to classify and segment complex manipulation tasks from continuous streams.
+
+The pipeline integrates the entire workflow:
+- **Data Utilities**: Manual labeling GUI and robust feature extraction.
+- **Modeling**: MS-TCN training with multi-modal sensor fusion.
+- **Analysis**: Advanced visualization tools including Saliency Maps, t-SNE embedding analysis, and segmentation gantt charts.
 
 ## Features
 
@@ -23,7 +28,7 @@ This repository contains a complete pipeline for action segmentation using multi
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd Action_Segmentation
+   cd MS_TCN_action_segmentation
    ```
 
 2. Create a conda environment and install dependencies:
@@ -65,7 +70,8 @@ All settings are managed in `config.yaml`.
 
 - **Data Paths**: Set `dataset_root` (default `./data`) and filenames.
 - **Mode**: Choose input modalities: `rgb`, `tactile`, or `all`.
-- **Training**: Set `epochs`, `batch_size`, `learning_rate`, etc.
+- **Training**: Set `epochs`, `batch_size`, `learning_rate`.
+    - **Validation**: Control split size via `val_size` (ratio `0.2` or absolute count `5`), enable `random_split`, and set `seed`.
 - **Model**: Tune TCN parameters (`num_layers`, `num_f_maps`).
 
 ## 4. Usage Pipeline
@@ -143,3 +149,18 @@ This produces `all_demos_labels_[mode].png`, useful for spotting inconsistencies
 - **`plot_tsne_terminal_states.py`**: Generates static t-SNE plot.
 - **`plot_tsne_terminal_state_UI.py`**: Interactive dashboard for t-SNE analysis.
 - **`label_actions.py`**: Labeling GUI.
+
+## 6. Model Architecture Explained
+
+### Why is it "Temporal"?
+Unlike standard image classifiers that predict action based on a single static frame (e.g., "this image contains a cup"), the **MS-TCN (Multi-Stage Temporal Convolutional Network)** makes predictions based on a **long history of frames**.
+
+1.  **Input Sequence**: Instead of one image, the model takes a timeline of feature vectors representing the entire video (e.g., 500+ frames).
+2.  **Dilated Convolutions**: The network uses layers with exponentially increasing dilation factors ($2^0, 2^1, \dots, 2^{10}$). 
+    - Layer 1 looks at immediate neighbors ($t \pm 1$).
+    - Layer 10 looks at frames hundreds of steps away ($t \pm 512$).
+3.  **Receptive Field**: This architecture gives the model a massive "Receptive Field". When predicting the action for **Frame $t$**, the model effectively "sees" the context from seconds or minutes before and after that moment. 
+
+This allows the model to:
+- **Smooth Predictions**: Ignore short flickers or visual noise.
+- **Learn Action Dependencies**: Understand that "Grasping" typically precedes "Lifting".

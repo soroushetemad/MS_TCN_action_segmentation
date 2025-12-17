@@ -35,14 +35,29 @@ if __name__ == "__main__":
 
     full_data = load_data()
     
-    # Train/Val Split (Simple: last 5 for val)
-    if len(full_data) < 5:
-        print("Warning: Not enough data for validation. Using all for training.")
-        train_data = full_data
-        val_data = full_data
+    # --- VALIDATION SPLIT ---
+    seed = cfg['training'].get('seed', 42)
+    random.seed(seed)
+    np.random.seed(seed)
+    
+    val_size = cfg['training'].get('val_size', 0.2)
+    do_random = cfg['training'].get('random_split', True)
+    
+    if do_random:
+        random.shuffle(full_data)
+        
+    total = len(full_data)
+    if isinstance(val_size, float) and val_size < 1.0:
+        n_val = int(total * val_size)
     else:
-        train_data = full_data[:-5]
-        val_data = full_data[-5:]
+        n_val = int(val_size)
+        
+    if n_val >= total:
+        print("Warning: val_size >= total data. Using 1 sample for val.")
+        n_val = total - 1
+        
+    train_data = full_data[:-n_val] if n_val > 0 else full_data
+    val_data = full_data[-n_val:] if n_val > 0 else []
         
     print(f"Train: {len(train_data)} | Val: {len(val_data)}")
 
